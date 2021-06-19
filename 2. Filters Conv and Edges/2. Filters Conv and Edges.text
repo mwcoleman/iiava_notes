@@ -1,0 +1,89 @@
+\documentclass[]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+
+\begin{document}
+	
+	\section{2. Filters, Convolutions, Scaling}
+		\subsection{Filters}
+		\begin{itemize}
+			\item Mean box filter: uniform averaging across a NxM region of neighbourhood pixels. Reduces high frequency components. Not often used, as it has a trade off between minimal effectiveness reducing noise with NxM small, and too destructive/many artefacts when NxM large.
+			\item Gaussian filter: Non-uniform that weights neighbouring pixels by their distance to centre. Better able to preserve transient information such as edges, details, while also eliminating noise effectively.
+		\end{itemize}
+		\subsection{Convolution}
+			\begin{align}
+			G[i,j] = \sum_{u=-k}^K  \sum_{v=-k}^K H[u,v] F[i-u,j-v] 
+			\end{align}
+			\textnormal{Flips through x and y and applies a cross correlation.}
+			
+		\subsection{Edge Detection}
+		\textnormal{An edge is a rapid change in the image intensity function.}
+		\
+		\begin{itemize}
+			\item What causes an edge? Depth distortions, change in surface direction, change in reflectance..
+			\item We can detect edges by computing the first or second order derivative. In a discrete setting this reduces to:
+				\begin{align}
+				\frac{ \partial f(x,y)}{ \partial x} = \frac{f(x+1,y) - f(x,y)}{1}
+				\end{align}
+			\item It is useful to apply a gaussian blur before edge detection, as the derivative will be sensitive to HF noise: 
+				\begin{align}
+				\frac{ \partial}{ \partial x}(g(x) \ast f(x)) =  	\frac{ \partial}{ \partial x}g(x) \ast f(x)
+				\end{align}
+		\end{itemize}
+		\textnormal{A good edge detector should have the following properties:}
+		\begin{itemize}
+			\item Smooth noise
+			\item Edge enhancement
+			\item Edge localisation
+		\end{itemize}
+		\subsubsection{Canny Edge Detector}
+		\begin{enumerate}
+			\item Smooth with gaussian filter
+			\item Compute magnitude and orientation of gradient
+			\item Compute non-maximum suppression (thin the wide edges)
+			\item Link and Threshold:
+			\begin{enumerate}
+				\item Define low and high thresholds. The high threshold is for starting an edge, the low threshold is for continuing an edge.
+				\item If gradient intensity is below low, discard it. If above high, keep it. If it is in the middle, search in neighbours for a maximal (above high) gradient and keep if it is found, otherwise discard
+			\end{enumerate}
+		\end{enumerate}
+		
+		\subsubsection{Edge Matching with Chamfer distance}
+		\textnormal{The chamfer distance is defined as the minimum point between the point of interest in a template and some non-zero point in the image.}
+		\begin{align}
+		D_{chamfer}(T,I) = \frac{1}{|T|} \sum_{t \in T} d_I (t)
+		\end{align}
+		\textnormal{Where $I$ is the set of points in image/edge map, $T$ is set of points in shifted template, $d_I (t)$ is the minimum distance between $t$ and some non-zero point in $I$}
+		\textnormal{For robustness in template matching, it is better to compute the distance transform of am image/edge map first. This is essentially computing a chamfer distance on the image itself, where every non-zero pixel entry is written over with a value corresponidng to its distance from the zero entry (i.e. distance to an edge)}
+		\textnormal{The edge matching steps become:}
+		\begin{enumerate}
+		\item Compute edge map
+		\item Compute distance transform of the edge map
+		\item Scan the template filter over the image and find minimum of $D_{chamfer}$
+		\end{enumerate}
+		\textnormal{The properties of chamfer edge matching:}
+		\begin{itemize}
+			\item Sensitive to scale and rotation
+			\item Tolerant to small shape changes and some noise
+			\item Need lots of templates
+			\item Computationally inexpensive, so point 3 above not so much an issue.
+		\end{itemize}
+	
+		\subsection{Image Scaling}
+		\textnormal{When downsampling, it is recommended to (gaussian) blur first so that we don't miss high frequency compoents. Non-sequiter: A gaussian pyramid is the repeated process of blurring and downsampling.}
+		\textnormal{When upsampling, we need to interpolate. Linear interpolation is recommended. It takes the weighted average between two points:}
+		\begin{align}
+		G(x) = \frac{x_2-x}{x_2-x_1}F(x_1) + \frac{x-x_1}{x_2-x_1}F(x_2)
+		\end{align}
+		\textnormal{If we define $d=x_2-x_1$ and $t=x-x_1$ then we can see how linear interpolation relates to a convolution operation:}
+		\begin{align}
+		G(x) = \frac{d-t}{d}F(x-t) + \frac{t}{d}F(x+d-t)
+		\end{align}
+		\textnormal{The first component $\frac{d-t}{d}$ could be considered a filter, and the second $F(x-t)$ the location. Remembering the form of the convolution this appears quite similar: }
+		\begin{align}
+		G(x) = \sum^T h(t) F(x-t)
+		\end{align}
+		
+	
+\end{document}

@@ -1,0 +1,63 @@
+\documentclass[]{article}
+\usepackage{amsmath}
+\usepackage{graphicx}
+%opening
+%\title{}
+%\author{}
+
+\begin{document}
+
+
+
+\section{Optical Flow}
+	\paragraph{Note: These notes are very rough. This section has not been covered to an acceptable level.}
+	\subsection{Overview}
+		\subsubsection{Motivation}
+		\begin{itemize}
+			\item Object segmentation (using motion)
+			\item Structure recognition
+			\item Image alignment
+			\item Feature extraction
+			\item Video compression
+		\end{itemize}
+		\subsubsection{Problem definition}
+		\begin{itemize}
+			\item Compute the pixel movement between frames
+			\item Given a pixel at $t$, look for nearby pixes of the same colour in $t+1$
+			\item Describe the optical flow, not the motion field (think of a barber's pole)
+		\end{itemize}
+		\subsubsection{Assumptions}
+		\begin{itemize}
+			\item Colour constancy: Colour remains constant for a object as it moves
+			\item Small motion: In small time increments (frame) only small motion can occur
+		\end{itemize}
+	\subsection{Horne and Shunck}
+		\subsubsection{Solve as optimising an error}
+			$$ Error(x,y) = (f_x u + f_y v + f_t)^2 + \lambda (u_x^2 + u_y^2 + v_x^2 + Vy^2) $$
+		\textnormal{Seek to find the minimum of this: the first term corresponds to the OF equation and should be zero for the true OF. The second term represents a 'smoothness' constraint i.e. real objects motion should be smooth.}
+		\subsubsection{The Aperture Problem}
+		\begin{itemize}
+			\item If a object is moving, the H and S algorithm can't detect movement of the smooth regions of an object, nor at the edges in the direction parallel to the edge.
+		\end{itemize}
+	\subsection{Lucas Kanade Algorithm}
+		\begin{itemize}
+			\item Solves the aperture problem however it fails in areas of large motion
+			\item Solve the failure by computing a pyramid (e.g. successive downsampling and iterative compute)
+		\end{itemize}
+	\subsection{FlowNet: Deep Learning Approach}
+		\subsubsection{Overview}
+		\begin{itemize}
+			\item OF needs precise per-pixel localisation
+			\item Requires finding correspondance between 2 pixels
+			\item Use a CNN in a sliding window; yet has a problem (compute, per patch nature and ignores global properties) 
+		\end{itemize}
+		\subsubsection{Architecture}
+		\begin{itemize}
+			\item Two channels
+			\item Two stacked CNN networks: A contracting part takes the input and outputs a small res OF prediction, then an expanding part successively upscales.
+			\item There are U-net like skip connections between each halve.
+			\item Has an update to handle disparity (think left and right eye) and scene flow
+			\item Benchmark on synthetic data
+		\end{itemize}
+\end{document}
+	

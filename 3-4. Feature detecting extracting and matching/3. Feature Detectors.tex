@@ -55,9 +55,9 @@
 			\item Apply gaussians with $k\sigma, k^2\sigma, k^3\sigma, ...$ to an image
 			\item Downsample the image and repeat (each repeat is an octave)
 			\item Subtract two consecutive scales to get the difference
-			\item For each min/max found at a scale, compare to neigbouring scales in scale-space and perform non-maximal suppression
+			\item For each min/max found at a scale, compare to neighbouring scales in scale-space and perform non-maximal suppression
 			\item (optional) Outlier rejection via thresholding
-			\item (Make it orientation invariant) Calculate a histogram of gradients to show the direction of the strongest response in that region
+			\item (Assign orientations) Calculate a histogram of gradients to show the direction of the strongest response in that region
 		\end{itemize}
 	\newpage		
 		\begin{figure}[h!]
@@ -81,9 +81,11 @@
 	\subsection{SIFT Descriptor}
 	\paragraph{For each interest point:}
 	\begin{itemize}
-		\item Compute 16x16 patches of magnitude and orientation
-		\item Compute HOG for each 4x4 region within the 16x16 (?)
-		\item results in a 128D vector
+		\item Take a 16x16 neighbourhood, and divide each into 4x4 (e.g. 16 x 4x4 blocks)
+		\item Compute HOG for each 4x4 region within the 16x16, each resulting block has a direction (8 possible directions) and magnitude
+		\item results in a 128D vector (4 x 4 x 8)
+		\item Make it rotation invariant by subtracting the keypoints orientation from each HOG orientation, now the HOG is relative to the keypoint orientation
+		\item Make it illumination invariant by thresholding large magnitudes: Anything above 0.2 set to 0.2. Normalise the result. (0.2 chosen empirically)
 		
 	\end{itemize}
 	\subsection{Self Similarity Descriptor}
@@ -99,7 +101,7 @@
 	\paragraph{Good for faces and textures. Steps:}
 	\begin{itemize}
 		\item Divide image into blocks
-		\item For each pixel in each block create an 8 bit score where each bit corresponds to a neighbouring pixels thresholded intensity, 1 if neighbour > subject, 0 otherwise.
+		\item For each pixel in each block create an 8 bit score where each bit corresponds to a neighbouring pixels threshold-ed intensity, 1 if neighbour > subject, 0 otherwise.
 		\item Compute the histogram for each block to get the representation for that block
 		\item stack histograms together to preserve spatial information.
 		\item (repeat for different neighbourhood scales to make it scale invariant)
@@ -108,12 +110,12 @@
 	
 	
 \section{Matching features}
-	\textnormal{A simple / naive method is to search for matches between groups of interest point regions on two images. A slighly improved version is to do this, but look for the top two matches (for each point) and if the relative similarity is > 0.8 reject the candidate match.}
+	\textnormal{A simple / naive method is to search for matches between groups of interest point regions on two images. A slightly improved version is to do this, but look for the top two matches (for each point) and if the relative similarity is > 0.8 reject the candidate match.}
 	
 \section{Image Alignment}
 	\textnormal{The task of finding parameters of a model (e.g. entries in a matrix) that maps one set of points to another. Tricky in image processing due to noise, outliers, many-to-one object matching.. Basic transforms include scale, shear, rotation, translation, affine, and projective.}
 	
-	\subsubsection{Example: Panorama stiching} 
+	\subsubsection{Example: Panorama stitching} 
 	\begin{enumerate}
 		\item Compute interest points and match
 		\item Compute H (homography matrix) to warp one image to another using matched interest points on edges. use RANSAC method to select the best H:
